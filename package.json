@@ -1,0 +1,18 @@
+{
+  "name": "duckbank.ahorros.api.v2",
+  "version": "2.0.0",
+  "description": "Api para el manejo de ahorros",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "Víctor Martinez",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.2",
+    "nodemon": "^3.1.0"
+  }
+}
