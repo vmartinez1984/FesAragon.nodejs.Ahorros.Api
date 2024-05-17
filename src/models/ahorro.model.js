@@ -4,6 +4,7 @@ const ahorroSchema = new mongoose.Schema(
     {
         nombre: String,
         clienteId: String,
+        clienteNombre: String,
         nota: String,
         total: Number,
         totalDeDepositos: Number,
@@ -33,8 +34,6 @@ const ahorroSchema = new mongoose.Schema(
     }
 )
 
-const depositoSchema = new mongoose.Schema(
-
-)
+const depositoSchema = new mongoose.Schema()
 
 module.exports = mongoose.model('Ahorro', ahorroSchema)
