@@ -44,7 +44,8 @@ router.get('/', async (request, response) => {
                 "total": item.total == undefined ? 0 : item.total,
                 "nota": item.nota == undefined ? "" : item.nota,
                 "id": item.id == undefined ? "" : item.id,
-                "tipoDeCuenta": item.tipoDeCuenta == undefined ? "" : item.tipoDeCuenta
+                "tipoDeCuenta": item.tipoDeCuenta == undefined ? "" : item.tipoDeCuenta,
+                "guid": item.guid == undefined ? "" : item.guid,
             })
         }
         // console.log('get all', ahorros)
@@ -61,8 +62,8 @@ router.get('/:id', async (request, response) => {
     try {
         let result
         result = await obtenerAhorroPorId(request.params.id)
-        if(result == undefined)
-            return response.status(200).json({mensaje: "No encontrado"})
+        if (result == undefined)
+            return response.status(200).json({ mensaje: "No encontrado" })
         console.log(result)
         return response.status(200).json(result)
     } catch (error) {
@@ -73,9 +74,9 @@ router.get('/:id', async (request, response) => {
 
 const obtenerAhorroPorId = async (id) => {
     let result
-    if (id == 24)//6643b4c6e3187f6d28a62d7e
+    if (id.length == 24)//6643b4c6e3187f6d28a62d7e
         result = await ahorroModel.findById(id);
-    else if (id == 36)//06dc7a78-8f85-4983-b848-cedf003148f9
+    else if (id.length == 36)//886f692c-fcd7-453b-9ef1-1d9a29d7f254
         result = await ahorroModel.findOne({ guid: id })
     else if (isNumeric(id))
         result = await ahorroModel.findOne({ id: id })
@@ -110,10 +111,7 @@ router.post('/:id/depositos', async (request, response) => {
         console.log("/api/ahorros/" + request.params.id + "/depositos")
         console.log(request.body)
         let ahorro
-        if (request.params.id.length == 24)
-            ahorro = await ahorroModel.findById(request.params.id)
-        else
-            ahorro = await ahorroModel.findOne({ id: request.params.id })
+        ahorro = await obtenerAhorroPorId(request.params.id)
         var depositoId = request.body.id;
         var deposito = ahorro.depositos.find(x => x.id == depositoId)
         if (deposito) {
@@ -139,21 +137,24 @@ router.post('/:id/retiros', async (request, response) => {
         console.log(new Date())
         console.log("/api/ahorros/" + request.params.id + "/retiros")
         console.log(request.body)
-        let ahorro = await ahorroModel.findById(request.params.id)
-        var retiroId = request.body.id;
+        let ahorro = await obtenerAhorroPorId(request.params.id)
+        const retiroId = request.body.id
         var retiro = ahorro.retiros.find(x => x.id == retiroId)
         if (retiro) {
             console.log("200", retiro)
             return response.status(200).json(retiro)
         }
-        ahorro.totalDeRetiros += request.body.cantidad
-        ahorro.total = ahorro.totalDeDepositos - ahorro.totalDeRetiros
-        ahorro.retiros.push(request.body)
-        const updatedBook = await ahorro.save()
-        let retiro201 = updatedBook.retiros.find(x => x.id == retiroId)
-        console.log("201", retiro201)
-
-        return response.status(201).json(retiro201)
+        if (ahorro.total >= request.body.cantidad) {
+            ahorro.totalDeRetiros += request.body.cantidad
+            ahorro.total = ahorro.totalDeDepositos - ahorro.totalDeRetiros
+            ahorro.retiros.push(request.body)
+            const updatedBook = await ahorro.save()
+            let retiro201 = updatedBook.retiros.find(x => x.id == retiroId)
+            console.log("201", retiro201)
+            response.status(201).json(retiro201)
+        } else {
+            response.status(409).json({ mensaje: "No cuenta con el saldo suficiente"})
+        }
     } catch (error) {
         console.log(error)
         response.status(500).json({ message: 'Ocurrio un error' })
